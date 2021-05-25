@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+command="my-zram-config"
+command_args="start"
+
+
+depend() {
+    need localmount
+    before logger
+}
+
+stop() {
+    my-zram-config stop
+}

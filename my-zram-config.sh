@@ -3,6 +3,7 @@
 COMP_ALGO="lzo"
 DEV_NUM="$(grep -c '^processor' /proc/cpuinfo)"
 
+
 if [ -e /etc/my-zram-config/config.conf ]; then
     . /etc/my-zram-config/config.conf
 fi
