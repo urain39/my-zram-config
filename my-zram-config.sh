@@ -5,12 +5,15 @@ DEV_NUM="$(grep -c '^processor' /proc/cpuinfo)"
 LOG_DIR="/var/log"
 LOG_SIZE_KB="$((128*1024))"
 LOG_COMP_ALGO="lz4"
+RSYNC_ARGS="-acX --inplace --no-whole-file --delete-after"
 
 _CFG_PATH="/etc/my-zram-config/config.conf"
+
 
 if [ -e "$_CFG_PATH" ]; then
     . "$_CFG_PATH"
 fi
+
 
 _is_running() {
     awk -v LOG_DIR="$LOG_DIR" \
@@ -58,7 +61,7 @@ start() {
     mount --bind "$LOG_DIR" "$LOG_DIR".hdd
     mount /dev/zram"$DEV_NUM" "$LOG_DIR"
 
-    rsync -ac "$LOG_DIR".hdd/ "$LOG_DIR"/
+    rsync $RSYNC_ARGS "$LOG_DIR".hdd/ "$LOG_DIR"/
 }
 
 stop() {
@@ -69,7 +72,7 @@ stop() {
     done
 
     _is_running && {
-        rsync -ac "$LOG_DIR"/ "$LOG_DIR".hdd/
+        rsync $RSYNC_ARGS "$LOG_DIR"/ "$LOG_DIR".hdd/
         umount "$LOG_DIR".hdd
         umount "$LOG_DIR"
     }
