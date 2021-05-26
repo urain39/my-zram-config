@@ -1,14 +1,21 @@
 #!/sbin/openrc-run
 
-command="my-zram-config"
-command_args="start"
+_command="my-zram-config"
 
 
 depend() {
-    need localmount
+    after localmount
     before logger
 }
 
+start() {
+    "$_command" status
+
+    if [ "$?" != "0" ]; then
+        "$_command" start
+    fi
+}
+
 stop() {
-    my-zram-config stop
+    "$_command" stop
 }

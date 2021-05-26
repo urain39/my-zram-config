@@ -12,6 +12,28 @@ if [ -e "$_CFG_PATH" ]; then
     . "$_CFG_PATH"
 fi
 
+_is_running() {
+    awk -v LOG_DIR="$LOG_DIR" \
+    'BEGIN {
+        found=0
+    }
+
+    {
+        if ($2 == LOG_DIR) {
+            found=1
+            exit 0
+        }
+    }
+
+    END {
+        if (found) {
+            exit 0
+        }
+
+        exit 1
+    }' /proc/mounts
+}
+
 
 start() {
     stop
@@ -46,25 +68,7 @@ stop() {
         fi
     done
 
-    awk -v LOG_DIR="$LOG_DIR" \
-    'BEGIN {
-        found=0
-    }
-
-    {
-        if ($2 == LOG_DIR) {
-            found=1
-            exit 0
-        }
-    }
-
-    END {
-        if (found) {
-            exit 0
-        }
-
-        exit 1
-    }' /proc/mounts && {
+    _is_running && {
         rsync -ac "$LOG_DIR"/ "$LOG_DIR".hdd/
         umount "$LOG_DIR".hdd
         umount "$LOG_DIR"
@@ -80,5 +84,9 @@ case "$1" in
     ;;
 "stop")
     stop
+    ;;
+"status")
+    _is_running
+    exit "$?"
     ;;
 esac
