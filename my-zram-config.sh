@@ -9,8 +9,11 @@ RAM_HOME="off"
 HOME_DIR="/home"
 RSYNC_ARGS="-acX --inplace --no-whole-file --delete-after"
 
-_CFG_PATH="/etc/my-zram-config/config.conf"
-_RUN_CFG_PATH="/run/my-zram-config.conf"
+_NAME=my-zram-config
+_CFG_PATH="/etc/$_NAME/config.conf"
+_RUN_CFG_PATH="/run/$_NAME.conf"
+_LOG_PATH="$LOG_DIR/$_NAME.log"
+
 
 if [ -f "$_RUN_CFG_PATH" ]; then
     # shellcheck disable=1090
@@ -95,6 +98,8 @@ stop() {
 
         umount "$LOG_DIR".hdd
         umount "$LOG_DIR"
+
+        iostat -k > "$_LOG_PATH"
     }
 
     for i in $(seq 0 $((DEV_NUM - 1))); do

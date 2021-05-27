@@ -5,7 +5,7 @@ _command="my-zram-config"
 
 depend() {
     after localmount
-    # NOTE: make sure before this script have no script to access /var/log, etc.
+    # NOTE: make sure before this script have no script access /var/log, etc.
     before acpid logger
 }
 
