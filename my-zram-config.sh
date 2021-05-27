@@ -8,32 +8,35 @@ LOG_COMP_ALGO="lz4"
 RSYNC_ARGS="-acX --inplace --no-whole-file --delete-after"
 
 _CFG_PATH="/etc/my-zram-config/config.conf"
+_RUN_CFG_PATH="/run/my-zram-config.conf"
 
-
-if [ -e "$_CFG_PATH" ]; then
-    . "$_CFG_PATH"
+if [ -f "$_RUN_CFG_PATH" ]; then
+    # shellcheck disable=1090
+    . "$_RUN_CFG_PATH"
+else
+    if [ -f "$_CFG_PATH" ]; then
+        cat "$_CFG_PATH" > "$_RUN_CFG_PATH"
+        # shellcheck disable=1090
+        . "$_CFG_PATH"
+    fi
 fi
 
 
-_is_running() {
-    awk -v LOG_DIR="$LOG_DIR" \
+_is_mounted() {
+    awk -v mnt_dir="$1" \
     'BEGIN {
         found=0
     }
 
     {
-        if ($2 == LOG_DIR) {
+        if ($2 == mnt_dir) {
             found=1
             exit 0
         }
     }
 
     END {
-        if (found) {
-            exit 0
-        }
-
-        exit 1
+        exit !found
     }' /proc/mounts
 }
 
@@ -41,6 +44,7 @@ _is_running() {
 start() {
     stop
 
+    # shellcheck disable=SC2155
     local mem_size_kb="$(awk '$1 == "MemTotal:" { print $2; exit 0 }' /proc/meminfo)"
     local per_size_kb="$(((mem_size_kb - LOG_SIZE_KB)  / DEV_NUM))"
 
@@ -61,6 +65,7 @@ start() {
     mount --bind "$LOG_DIR" "$LOG_DIR".hdd
     mount /dev/zram"$DEV_NUM" "$LOG_DIR"
 
+    # shellcheck disable=SC2086
     rsync $RSYNC_ARGS "$LOG_DIR".hdd/ "$LOG_DIR"/
 }
 
@@ -71,8 +76,10 @@ stop() {
         fi
     done
 
-    _is_running && {
+    _is_mounted "$LOG_DIR" && {
+        # shellcheck disable=SC2086
         rsync $RSYNC_ARGS "$LOG_DIR"/ "$LOG_DIR".hdd/
+
         umount "$LOG_DIR".hdd
         umount "$LOG_DIR"
     }
@@ -89,7 +96,7 @@ case "$1" in
     stop
     ;;
 "status")
-    _is_running
+    _is_mounted "$LOG_DIR" # || _is_mounted "$HOME_DIR"
     exit "$?"
     ;;
 esac

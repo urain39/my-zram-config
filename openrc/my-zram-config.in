@@ -9,9 +9,7 @@ depend() {
 }
 
 start() {
-    "$_command" status
-
-    if [ "$?" != "0" ]; then
+    if ! "$_command" status; then
         "$_command" start
     fi
 }
