@@ -29,13 +29,13 @@ fi
 
 
 _is_mounted() {
-    awk -v mnt_dir="$1" \
+    awk -v mnt_pnt="$1" \
     'BEGIN {
         found=0
     }
 
     {
-        if ($2 == mnt_dir) {
+        if ($2 == mnt_pnt) {
             found=1
             exit 0
         }
