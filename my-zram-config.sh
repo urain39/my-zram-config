@@ -10,9 +10,9 @@ HOME_DIR="/home"
 RSYNC_ARGS="-acX --inplace --no-whole-file --delete-after"
 
 _NAME=my-zram-config
-_CFG_PATH="/etc/$_NAME/config.conf"
-_RUN_CFG_PATH="/run/$_NAME.conf"
-_LOG_PATH="$LOG_DIR/$_NAME.log"
+_CFG_PATH=/etc/"$_NAME"/config.conf
+_RUN_CFG_PATH=/run/"$_NAME".conf
+_LOG_PATH="$LOG_DIR"/"$_NAME".log
 
 
 if [ -f "$_RUN_CFG_PATH" ]; then
