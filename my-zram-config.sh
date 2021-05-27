@@ -53,7 +53,7 @@ correct() {
 
         if [ "$(stat -c "%u%g%a" "$STATIC_DIR")" != "001777" ]; then
             chown root:root "$STATIC_DIR"
-            chmod 1755 "$STATIC_DIR"
+            chmod 1777 "$STATIC_DIR"
         fi
     fi
 }
