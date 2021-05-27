@@ -5,7 +5,7 @@ _command="my-zram-config"
 
 depend() {
     after localmount
-    before logger
+    before acpid logger
 }
 
 start() {

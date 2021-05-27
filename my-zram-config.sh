@@ -94,8 +94,7 @@ stop() {
         rsync $RSYNC_ARGS "$LOG_DIR"/ "$LOG_DIR".hdd/
 
         umount "$LOG_DIR".hdd
-        # FIXME: It looks someone still use it
-        #umount "$LOG_DIR"
+        umount "$LOG_DIR"
     }
 
     for i in $(seq 0 $((DEV_NUM - 1))); do
