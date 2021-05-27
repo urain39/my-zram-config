@@ -11,6 +11,7 @@ depend() {
 
 start() {
     if ! "$_command" status; then
+        "$_command" correct
         "$_command" start
     fi
 }

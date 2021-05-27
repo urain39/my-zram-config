@@ -7,6 +7,7 @@ LOG_SIZE_KB="$((128*1024))"
 LOG_COMP_ALGO="lz4"
 RAM_HOME="off"
 HOME_DIR="/home"
+STATIC_DIR="/static"
 RSYNC_ARGS="-acX --inplace --no-whole-file --delete-after"
 
 _NAME=my-zram-config
@@ -46,6 +47,17 @@ _is_mounted() {
 }
 
 
+correct() {
+    if [ "$RAM_HOME" = "on" ]; then
+        mkdir -p "$STATIC_DIR"
+
+        if [ "$(stat -c "%u%g%a" "$STATIC_DIR")" != "001777" ]; then
+            chown root:root "$STATIC_DIR"
+            chmod 1755 "$STATIC_DIR"
+        fi
+    fi
+}
+
 start() {
     stop
 
@@ -55,6 +67,7 @@ start() {
 
     modprobe zram num_devices="$((DEV_NUM + 1))"
 
+    local i
     for i in $(seq 0 $((DEV_NUM - 1))); do
         echo "$COMP_ALGO" > /sys/block/zram"$i"/comp_algorithm
         echo "$per_size_kb"KB > /sys/block/zram"$i"/disksize
@@ -102,6 +115,7 @@ stop() {
         iostat -k > "$_LOG_PATH"
     }
 
+    local i
     for i in $(seq 0 $((DEV_NUM - 1))); do
         if [ -b /dev/zram"$i" ]; then
             swapoff /dev/zram"$i"
@@ -113,6 +127,9 @@ stop() {
 
 
 case "$1" in
+"correct")
+    correct
+    ;;
 "start")
     start
     ;;
