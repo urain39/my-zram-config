@@ -5,6 +5,8 @@ DEV_NUM="$(grep -c '^processor' /proc/cpuinfo)"
 LOG_DIR="/var/log"
 LOG_SIZE_KB="$((128*1024))"
 LOG_COMP_ALGO="lz4"
+RAM_HOME="off"
+HOME_DIR="/home"
 RSYNC_ARGS="-acX --inplace --no-whole-file --delete-after"
 
 _CFG_PATH="/etc/my-zram-config/config.conf"
@@ -67,22 +69,40 @@ start() {
 
     # shellcheck disable=SC2086
     rsync $RSYNC_ARGS "$LOG_DIR".hdd/ "$LOG_DIR"/
+
+    if [ "$RAM_HOME" = "on" ]; then
+        mkdir -p "$HOME_DIR".hdd
+        mount --bind "$HOME_DIR" "$HOME_DIR".hdd
+        mount tmpfs -t tmpfs "$HOME_DIR"
+
+        # shellcheck disable=SC2086
+        rsync $RSYNC_ARGS "$HOME_DIR".hdd/ "$HOME_DIR"/
+    fi
 }
 
 stop() {
-    for i in $(seq 0 $((DEV_NUM - 1))); do
-        if [ -b /dev/zram"$i" ]; then
-            swapoff /dev/zram"$i"
-        fi
-    done
+    _is_mounted "$HOME_DIR" && {
+        # shellcheck disable=SC2086
+        rsync $RSYNC_ARGS "$HOME_DIR"/ "$HOME_DIR".hdd/
+
+        umount "$HOME_DIR".hdd
+        umount "$HOME_DIR"
+    }
 
     _is_mounted "$LOG_DIR" && {
         # shellcheck disable=SC2086
         rsync $RSYNC_ARGS "$LOG_DIR"/ "$LOG_DIR".hdd/
 
         umount "$LOG_DIR".hdd
-        umount "$LOG_DIR"
+        # FIXME: It looks someone still use it
+        #umount "$LOG_DIR"
     }
+
+    for i in $(seq 0 $((DEV_NUM - 1))); do
+        if [ -b /dev/zram"$i" ]; then
+            swapoff /dev/zram"$i"
+        fi
+    done
 
     modprobe -r zram
 }
