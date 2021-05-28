@@ -110,7 +110,7 @@ stop() {
     _is_mounted "$LOG_DIR" && {
         # shellcheck disable=SC2086
         rsync $RSYNC_ARGS "$LOG_DIR"/ "$LOG_DIR".hdd/
-        iostat -m > "$_LOG_PATH"
+        sync && iostat -m > "$_LOG_PATH"
 
         if fuser -m "$LOG_DIR" > /dev/null; then
             removable="false"
