@@ -117,7 +117,7 @@ stop() {
             umount "$LOG_DIR"
             umount "$LOG_DIR".hdd
 
-            iostat -k > "$_LOG_PATH"
+            iostat -m > "$_LOG_PATH"
         fi
     }
 
