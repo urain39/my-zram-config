@@ -61,7 +61,7 @@ correct() {
 start() {
     stop
 
-    local mem_size_kb= per_size_kb= i=
+    local mem_size_kb="" per_size_kb="" i=""
 
     mem_size_kb="$(awk '$1 == "MemTotal:" { print $2; exit 0 }' /proc/meminfo)"
     per_size_kb="$(((mem_size_kb - LOG_SIZE_KB)  / DEV_NUM))"
@@ -97,7 +97,7 @@ start() {
 }
 
 stop() {
-    local removable="true" i=
+    local removable="true" i=""
 
     _is_mounted "$HOME_DIR" && {
         # shellcheck disable=SC2086

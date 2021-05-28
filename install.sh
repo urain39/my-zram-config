@@ -12,7 +12,7 @@ rc-update add my-zram-config default
 
 case "$ID" in
     "alpine")
-        type -p rsync || apk add rsync
+        type rsync > /dev/null || apk add rsync
         ;;
     *)
         echo "NOTE: make sure you have installed rsync!"
