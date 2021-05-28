@@ -114,6 +114,7 @@ stop() {
 
         if fuser -m "$LOG_DIR" > /dev/null; then
             removable="false"
+            echo removable="$removable" >> "$_LOG_PATH"
         else
             umount "$LOG_DIR"
             umount "$LOG_DIR".hdd
