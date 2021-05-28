@@ -61,13 +61,13 @@ correct() {
 start() {
     stop
 
-    # shellcheck disable=SC2155
-    local mem_size_kb="$(awk '$1 == "MemTotal:" { print $2; exit 0 }' /proc/meminfo)"
-    local per_size_kb="$(((mem_size_kb - LOG_SIZE_KB)  / DEV_NUM))"
+    local mem_size_kb= per_size_kb= i=
+
+    mem_size_kb="$(awk '$1 == "MemTotal:" { print $2; exit 0 }' /proc/meminfo)"
+    per_size_kb="$(((mem_size_kb - LOG_SIZE_KB)  / DEV_NUM))"
 
     modprobe zram num_devices="$((DEV_NUM + 1))"
 
-    local i
     for i in $(seq 0 $((DEV_NUM - 1))); do
         echo "$COMP_ALGO" > /sys/block/zram"$i"/comp_algorithm
         echo "$per_size_kb"KB > /sys/block/zram"$i"/disksize
@@ -97,32 +97,39 @@ start() {
 }
 
 stop() {
+    local removable="true" i=
+
     _is_mounted "$HOME_DIR" && {
         # shellcheck disable=SC2086
         rsync $RSYNC_ARGS "$HOME_DIR"/ "$HOME_DIR".hdd/
 
-        umount "$HOME_DIR".hdd
         umount "$HOME_DIR"
+        umount "$HOME_DIR".hdd
     }
 
     _is_mounted "$LOG_DIR" && {
         # shellcheck disable=SC2086
         rsync $RSYNC_ARGS "$LOG_DIR"/ "$LOG_DIR".hdd/
 
-        umount "$LOG_DIR".hdd
-        umount "$LOG_DIR"
+        if fuser -m "$LOG_DIR" > /dev/null; then
+            removable="false"
+        else
+            umount "$LOG_DIR"
+            umount "$LOG_DIR".hdd
 
-        iostat -k > "$_LOG_PATH"
+            iostat -k > "$_LOG_PATH"
+        fi
     }
 
-    local i
     for i in $(seq 0 $((DEV_NUM - 1))); do
         if [ -b /dev/zram"$i" ]; then
             swapoff /dev/zram"$i"
         fi
     done
 
-    modprobe -r zram
+    if [ "$removable" = "true" ]; then
+        modprobe -r zram
+    fi
 }
 
 
