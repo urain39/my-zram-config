@@ -61,16 +61,16 @@ correct() {
 start() {
     stop
 
-    local mem_size_kb="" per_size_kb="" i=""
+    local mem_size_kb="" avg_size_kb="" i=""
 
     mem_size_kb="$(awk '$1 == "MemTotal:" { print $2; exit 0 }' /proc/meminfo)"
-    per_size_kb="$(((mem_size_kb - LOG_SIZE_KB)  / DEV_NUM))"
+    avg_size_kb="$(((mem_size_kb - LOG_SIZE_KB)  / DEV_NUM))"
 
     modprobe zram num_devices="$((DEV_NUM + 1))"
 
     for i in $(seq 0 $((DEV_NUM - 1))); do
         echo "$COMP_ALGO" > /sys/block/zram"$i"/comp_algorithm
-        echo "$per_size_kb"KB > /sys/block/zram"$i"/disksize
+        echo "$avg_size_kb"KB > /sys/block/zram"$i"/disksize
         mkswap /dev/zram"$i"
         swapon /dev/zram"$i"
     done
