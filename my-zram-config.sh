@@ -103,8 +103,8 @@ stop() {
         rsync $RSYNC_ARGS "$HOME_DIR"/ "$HOME_DIR".hdd/
         sync
 
-        umount "$HOME_DIR"
-        umount "$HOME_DIR".hdd
+        umount -l "$HOME_DIR"
+        umount -l "$HOME_DIR".hdd
     }
 
     _is_mounted "$LOG_DIR" && {
