@@ -8,7 +8,7 @@ LOG_COMP_ALGO="lz4"
 RAM_HOME="off"
 HOME_DIR="/home"
 STATIC_DIR="/static"
-RSYNC_ARGS="-acX --inplace --no-whole-file --delete-after"
+RSYNC_ARGS="-aX --inplace --delete-after"
 
 _NAME=my-zram-config
 _CFG_PATH=/etc/"$_NAME"/config.conf
@@ -61,13 +61,14 @@ correct() {
 start() {
     stop
 
-    local mem_size_kb="" avg_size_kb="" i=""
+    local mem_size_kb="" avg_size_kb=""
 
     mem_size_kb="$(awk '$1 == "MemTotal:" { print $2; exit 0 }' /proc/meminfo)"
     avg_size_kb="$(((mem_size_kb - LOG_SIZE_KB)  / DEV_NUM))"
 
     modprobe zram num_devices="$((DEV_NUM + 1))"
 
+    local i=
     for i in $(seq 0 $((DEV_NUM - 1))); do
         echo "$COMP_ALGO" > /sys/block/zram"$i"/comp_algorithm
         echo "$avg_size_kb"KB > /sys/block/zram"$i"/disksize
@@ -97,8 +98,6 @@ start() {
 }
 
 stop() {
-    local removable="true" i=""
-
     _is_mounted "$HOME_DIR" && {
         # shellcheck disable=SC2086
         rsync $RSYNC_ARGS "$HOME_DIR"/ "$HOME_DIR".hdd/
@@ -113,24 +112,18 @@ stop() {
         rsync $RSYNC_ARGS "$LOG_DIR"/ "$LOG_DIR".hdd/
         sync && iostat -m > "$_LOG_PATH"
 
-        if fuser -m "$LOG_DIR" > /dev/null; then
-            removable="false"
-            echo removable="$removable" >> "$_LOG_PATH"
-        else
-            umount "$LOG_DIR"
-            umount "$LOG_DIR".hdd
-        fi
+        umount -l "$LOG_DIR"
+        umount -l "$LOG_DIR".hdd
     }
 
+    local i=
     for i in $(seq 0 $((DEV_NUM - 1))); do
         if [ -b /dev/zram"$i" ]; then
             swapoff /dev/zram"$i"
         fi
     done
 
-    if [ "$removable" = "true" ]; then
-        modprobe -r zram
-    fi
+    #modprobe -r zram
 }
 
 
