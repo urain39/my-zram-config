@@ -8,7 +8,7 @@ LOG_COMP_ALGO="lz4"
 RAM_HOME="off"
 HOME_DIR="/home"
 STATIC_DIR="/static"
-RSYNC_ARGS="-au --inplace --no-whole-file --delete-after"
+RSYNC_ARGS="-auy --inplace --no-whole-file --delete-after"
 
 _NAME=my-zram-config
 _CFG_PATH=/etc/"$_NAME"/config.conf
